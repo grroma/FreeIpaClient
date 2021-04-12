@@ -1,0 +1,5 @@
+/src/FreeIpaClient.Tests/bin/
+/src/FreeIpaClient.Tests/obj/
+/src/FreeIpaClient/bin/
+/src/FreeIpaClient/obj/
+/.idea/
