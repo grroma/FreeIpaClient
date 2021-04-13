@@ -1,6 +1,6 @@
 {
   "FreeIPA": {
-    "Host": "https://freeipa.dev.aorti.tech/ipa/",
+    "Host": "https://freeipa.dev.local/ipa/",
     "User": "admin",
     "Password": "Secret123"
   }

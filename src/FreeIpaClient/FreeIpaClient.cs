@@ -1,11 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
+using FreeIpaClient.Constants;
 using FreeIpaClient.Exceptions;
 using FreeIpaClient.Interfaces;
 using FreeIpaClient.Models;
+using FreeIpaClient.RequestOptions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -28,7 +31,81 @@ namespace FreeIpaClient
 
         public async Task Ping()
         {
-            await Post<object, string>("ping", new FreeIpaRequestOptions());
+            await Post<object, string>(Methods.Ping, new FreeIpaRequestOptions());
+        }
+        
+        public async Task<FreeIpaUser> UserAdd(FreeIpaUserRequestOptions options, bool stage = false)
+        {
+            options.Sn ??= options.Uid;
+            options.Givenname ??= options.Uid;
+
+            var user = await Post<FreeIpaUser, string>(
+               stage ? Methods.StageUserAdd : Methods.UserAdd, options, false, true, true);
+            user.Stage = stage;
+            return user;
+        }
+        
+        public async Task<FreeIpaUser> UserMod(FreeIpaUserAddModRequestOptions options, bool stage = false)
+        {
+            var user = await Post<FreeIpaUser, string>(
+                stage ? Methods.StageUserMod : Methods.UserMod, options, true, true, true);
+            user.Stage = stage;
+            return user;
+        }
+
+        public Task<bool> Passwd(FreeIpaPasswdRequestOptions options)
+        {
+            return Post<bool, string>(Methods.Passwd, options);
+        }
+
+        public async Task<FreeIpaUser[]> UserFind(FreeIpaUserFindRequestOptions options)
+        {
+            var users = await Post<FreeIpaUser[], string>(Methods.UserFind, options, false, true, true);
+            return users;
+        }
+        
+        public async Task<FreeIpaUser[]> StageUserFind(FreeIpaStageUserFindRequestOptions options)
+        {
+            var users = 
+                await Post<FreeIpaUser[], string>(Methods.StageUserFind, options, false, true, true);
+            return users;
+        }
+        
+        public async Task<FreeIpaUser[]> UserShow(FreeIpaUserShowRequestOptions options)
+        {
+            var users = await Post<FreeIpaUser[], string>(Methods.UserShow, options, false, true, true);
+            return users;
+        }
+
+        public Task<bool> UserDisable(FreeIpaUserDisableRequestOptions options)
+        {
+            return Post<bool, string>(Methods.UserDisable, options);
+        }
+
+        public Task<bool> UserEnable(FreeIpaUserEnableRequestOptions options)
+        {
+            return Post<bool, string>(Methods.UserEnable, options);
+        }
+
+        public async Task<string[]> UserDel(FreeIpaUserDelRequestOptions options, bool stage = false)
+        {
+            var result = await Post<FreeIpaUserDelResult, string[]>(
+                stage ? Methods.StageUserDel : Methods.UserDel, options);
+
+            return result?.Failed;
+        }
+
+        public async Task<string[]> UserUndel(FreeIpaUserUndelRequestOptions options)
+        {
+            var result = await Post<FreeIpaUserUndelResult, string[]>(Methods.UserUndel, options);
+            return result?.Error;
+        }
+
+        public async Task<FreeIpaUser> StageUserActivate(FreeIpaStageUserActivateRequestOptions options)
+        {
+            var user = await Post<FreeIpaUser, string>(Methods.StageUserActivate, options);
+            user.Stage = false;
+            return user;
         }
         
         public async Task<TResult> Post<TResult, TValue>(
@@ -62,10 +139,10 @@ namespace FreeIpaClient
                 NullValueHandling = sendNulls ? NullValueHandling.Include : NullValueHandling.Ignore
             });
 
-            var httpContent = new StringContent(requestString, Encoding.UTF8, "application/json");
+            var httpContent = new StringContent(requestString, Encoding.UTF8, MediaTypeNames.Application.Json);
 
             _httpClient.DefaultRequestHeaders.Referrer = _config.Host;
-            var responseMessage = await _httpClient.PostAsync("session/json", httpContent);
+            var responseMessage = await _httpClient.PostAsync(Routes.Api, httpContent);
             responseMessage.EnsureSuccessStatusCode();
 
             var content = await responseMessage.Content.ReadAsStringAsync();
@@ -83,12 +160,12 @@ namespace FreeIpaClient
         {
             var httpContent = new FormUrlEncodedContent(new[]
             {
-                new KeyValuePair<string, string>("user", _config.User),
-                new KeyValuePair<string, string>("password", _config.Password)
+                new KeyValuePair<string, string>(Methods.User, _config.User),
+                new KeyValuePair<string, string>(Methods.Password, _config.Password)
             });
 
             _httpClient.DefaultRequestHeaders.Referrer = _config.Host;
-            var response = await _httpClient.PostAsync("session/login_password", httpContent);
+            var response = await _httpClient.PostAsync(Routes.Login, httpContent);
 
             if (!response.IsSuccessStatusCode && response.Headers.TryGetValues("X-IPA-Rejection-Reason", out var rejectionReasons))
             {
@@ -97,7 +174,7 @@ namespace FreeIpaClient
 
             response.EnsureSuccessStatusCode();
 
-            if (!response.Headers.TryGetValues("Set-Cookie", out var cookies) || !cookies.Any(c => c.Contains("ipa_session")))
+            if (!response.Headers.TryGetValues("Set-Cookie", out var cookies) || !cookies.Any(c => c.Contains(Methods.IpaSession)))
             {
                 throw new FreeIpaException("FreeIPA login error: Response doesn't contain ipa_session cookie.", response.StatusCode);
             }
