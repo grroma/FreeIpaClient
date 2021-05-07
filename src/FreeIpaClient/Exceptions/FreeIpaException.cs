@@ -21,13 +21,9 @@ namespace FreeIpaClient.Exceptions
         }
 
         public bool IsInvalidCredential => Error?.Code == InvalidCredential;
-
         public bool IsNoMatchingEntryFound => Error?.Code == NoMatchingEntryFound;
-
         public bool IsNotFound => Error?.Code == NotFound;
-
         public bool IsAlreadyInactive => Error?.Code == AlreadyInactive;
-
         public bool IsAlreadyActive => Error?.Code == AlreadyActive;
     }
 }

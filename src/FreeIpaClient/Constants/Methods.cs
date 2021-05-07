@@ -1,6 +1,6 @@
 namespace FreeIpaClient.Constants
 {
-    public static class Methods
+    public static class FreeMethods
     {
         public const string Ping = "ping";
         public const string StageUserAdd = "stageuser_add";
