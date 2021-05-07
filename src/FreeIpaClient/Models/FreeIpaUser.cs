@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace FreeIpaClient.Models
 {
     public class FreeIpaUser
@@ -12,5 +14,6 @@ namespace FreeIpaClient.Models
         public string[] Title { get; set; }
         public bool Stage { get; set; }
         public bool Preserved { get; set; }
+        public List<bool> Nsaccountlock { get; set; }
     }
 }
