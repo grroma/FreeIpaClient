@@ -1,77 +1,76 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using FreeIpaClient.Interfaces;
 using FreeIpaClient.Models;
 using FreeIpaClient.RequestOptions;
 using Microsoft.Extensions.Configuration;
-using Xunit;
 
-namespace FreeIpaClient.Tests
+namespace FreeIpaClient.Tests.Tests
 {
-    public class FreeIpaClientTests
+    public partial class FreeIpaClientTests : IDisposable
     {
+        private readonly FreeIpaConfig _config;
         private readonly IFreeIpaApiClient _client;
+        private readonly HttpClientHandler _httpClientHandler;
+        private readonly HttpClient _httpClient;
+        private readonly HashSet<string> _usersToCleanup = new HashSet<string>();
 
         public FreeIpaClientTests()
         {
-            var config = new ConfigurationBuilder()
+            _config = new ConfigurationBuilder()
                 .AddJsonFile("testsettings.json")
                 .Build()
                 .GetSection("FreeIPA")
                 .Get<FreeIpaConfig>();
 
-            var httpClientHandler = new HttpClientHandler
+            _httpClientHandler = new HttpClientHandler
             {
                 ServerCertificateCustomValidationCallback =
                     HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
             };
-            var httpClient = new HttpClient(httpClientHandler);
-            _client = new FreeIpaApiClient(httpClient, config);
+            _httpClient = new HttpClient(_httpClientHandler);
+            _client = new FreeIpaApiClient(_httpClient, _config);
+            
+        }
+
+        public void Dispose()
+        {
+            //cleanup active users
+            try
+            {
+                _client.UserDel(new FreeIpaUserDelRequestOptions
+                {
+                    Uid = _usersToCleanup.ToArray(),
+                    Continue = true
+                }).Wait();
+            }
+            catch
+            {
+                //skip cleanup errors
+            }
+
+            //cleanup staged users
+            try
+            {
+                _client.UserDel(new FreeIpaUserDelRequestOptions
+                {
+                    Uid = _usersToCleanup.ToArray(),
+                    Continue = true
+                }, true).Wait();
+            }
+            catch
+            {
+                //skip cleanup errors
+            }
+            
+            _httpClient.Dispose();
+            _httpClientHandler.Dispose();
         }
         
-        [Fact]
-        public async Task Ping()
-        {
-            await _client.Ping();
-            Assert.True(true);
-        }
-        
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public async Task UserAdd(bool stage)
-        {
-            var options = NewUserRequestOptionsFixture();
-            var result = await _client.UserAdd(options, stage);
-
-            Assert.NotNull(result);
-            Assert.Equal(stage, result.Stage);
-        }
-        
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public async Task UserMod(bool stage)
-        {
-            var addUserOptions = NewUserRequestOptionsFixture();
-            await _client.UserAdd(addUserOptions, stage);
-
-            var userModOptions = NewUserRequestOptionsFixture();
-            userModOptions.Uid = addUserOptions.Uid;
-
-            var userModResult = await _client.UserMod(userModOptions, stage);
-
-            Assert.NotNull(userModResult);
-            Assert.Equal(stage, userModResult.Stage);
-            AssertUser(userModOptions, userModResult);
-
-        }
-
-        #region Helpers
         private static FreeIpaUserRequestOptions NewUserRequestOptionsFixture()
         {
             var uid = Guid.NewGuid().ToString("N");
@@ -91,7 +90,7 @@ namespace FreeIpaClient.Tests
             };
         }
         
-        private void AssertUser(FreeIpaUserRequestOptions options, FreeIpaUser user)
+        private static void AssertUser(FreeIpaUserRequestOptions options, FreeIpaUser user)
         {
             using (new AssertionScope())
             {
@@ -105,6 +104,21 @@ namespace FreeIpaClient.Tests
                 options.Title.Should().Equals(user.Title.Single());
             }
         }
-        #endregion
+        
+        private void MarkForCleanup(FreeIpaUser user)
+        {
+            if (user is {Uid: { }} && user.Uid.Length != 0)
+            {
+                MarkForCleanup(user.Uid[0]);
+            }
+        }
+
+        private void MarkForCleanup(string userId)
+        {
+            if (userId != null)
+            {
+                _usersToCleanup.Add(userId);
+            }
+        }
     }
 }
