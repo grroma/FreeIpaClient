@@ -18,6 +18,7 @@ namespace FreeIpaClient.RequestOptions
     {
         public string Givenname { get; set; }
         public string Sn { get; set; }
+        
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Cn { get; set; }
         public string Mail { get; set; }

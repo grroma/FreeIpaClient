@@ -1,8 +1,5 @@
 namespace FreeIpaClient.Exceptions
 {
-    /// <summary>
-    ///  ???
-    /// </summary>
     public class FreeIpaError
     {
         public int Code { get; set; }
