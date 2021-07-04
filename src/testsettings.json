@@ -1,0 +1,7 @@
+{
+  "FreeIPA": {
+    "Host": "https://freeipa.dev.local/ipa/",
+    "User": "admin",
+    "Password": "Secret123"
+  }
+}
