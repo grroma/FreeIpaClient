@@ -142,7 +142,7 @@ namespace FreeIpaClient
             var httpContent = new StringContent(requestString, Encoding.UTF8, MediaTypeNames.Application.Json);
 
             _httpClient.DefaultRequestHeaders.Referrer = _config.Host;
-            var responseMessage = await _httpClient.PostAsync(FreeRoutes.Api, httpContent);
+            var responseMessage = await _httpClient.PostAsync(FreeIpaRoutes.Api, httpContent);
             responseMessage.EnsureSuccessStatusCode();
 
             var content = await responseMessage.Content.ReadAsStringAsync();
@@ -165,7 +165,7 @@ namespace FreeIpaClient
             });
 
             _httpClient.DefaultRequestHeaders.Referrer = _config.Host;
-            var response = await _httpClient.PostAsync(FreeRoutes.Login, httpContent);
+            var response = await _httpClient.PostAsync(FreeIpaRoutes.Login, httpContent);
 
             if (!response.IsSuccessStatusCode && response.Headers.TryGetValues("X-IPA-Rejection-Reason", out var rejectionReasons))
             {

@@ -5,6 +5,9 @@ using FreeIpaClient.RequestOptions;
 
 namespace FreeIpaClient.Interfaces
 {
+    /// <summary>
+    /// ???
+    /// </summary>
     public interface IFreeIpaApiClient
     {
         Task Ping();

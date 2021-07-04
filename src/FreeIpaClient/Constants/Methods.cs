@@ -1,5 +1,11 @@
 namespace FreeIpaClient.Constants
 {
+    /// <summary>
+    /// Supported FreeIpaClient API methods.
+    /// See <see cref="https://ipa.demo1.freeipa.org/ipa/ui/#/p/apibrowser/type=command"/> a complete list.
+    ///     login:    admin
+    ///     password: Secret123
+    /// </summary>
     public static class FreeMethods
     {
         public const string Ping = "ping";
