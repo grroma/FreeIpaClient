@@ -31,7 +31,7 @@ namespace FreeIpaClient
 
         public async Task Ping()
         {
-            await Post<object, string>(FreeMethods.Ping, new FreeIpaRequestOptions());
+            await Post<object, string>(FreeIpaApiMethods.Ping, new FreeIpaRequestOptions());
         }
         
         public async Task<FreeIpaUser> UserAdd(FreeIpaUserRequestOptions options, bool stage = false)
@@ -40,7 +40,7 @@ namespace FreeIpaClient
             options.Givenname ??= options.Uid;
 
             var user = await Post<FreeIpaUser, string>(
-               stage ? FreeMethods.StageUserAdd : FreeMethods.UserAdd, options, false, true, true);
+               stage ? FreeIpaApiMethods.StageUserAdd : FreeIpaApiMethods.UserAdd, options, false, true, true);
             user.Stage = stage;
             return user;
         }
@@ -48,62 +48,62 @@ namespace FreeIpaClient
         public async Task<FreeIpaUser> UserMod(FreeIpaUserAddModRequestOptions options, bool stage = false)
         {
             var user = await Post<FreeIpaUser, string>(
-                stage ? FreeMethods.StageUserMod : FreeMethods.UserMod, options, true, true, true);
+                stage ? FreeIpaApiMethods.StageUserMod : FreeIpaApiMethods.UserMod, options, true, true, true);
             user.Stage = stage;
             return user;
         }
 
         public Task<bool> Passwd(FreeIpaPasswdRequestOptions options)
         {
-            return Post<bool, string>(FreeMethods.Passwd, options);
+            return Post<bool, string>(FreeIpaApiMethods.Passwd, options);
         }
 
         public async Task<FreeIpaUser[]> UserFind(FreeIpaUserFindRequestOptions options)
         {
-            var users = await Post<FreeIpaUser[], string>(FreeMethods.UserFind, options, false, true, true);
+            var users = await Post<FreeIpaUser[], string>(FreeIpaApiMethods.UserFind, options, false, true, true);
             return users;
         }
         
         public async Task<FreeIpaUser[]> StageUserFind(FreeIpaStageUserFindRequestOptions options)
         {
             var users = 
-                await Post<FreeIpaUser[], string>(FreeMethods.StageUserFind, options, false, true, true);
+                await Post<FreeIpaUser[], string>(FreeIpaApiMethods.StageUserFind, options, false, true, true);
             return users;
         }
         
         public async Task<FreeIpaUser[]> UserShow(FreeIpaUserShowRequestOptions options)
         {
-            var users = await Post<FreeIpaUser[], string>(FreeMethods.UserShow, options, false, true, true);
+            var users = await Post<FreeIpaUser[], string>(FreeIpaApiMethods.UserShow, options, false, true, true);
             return users;
         }
 
         public Task<bool> UserDisable(FreeIpaUserDisableRequestOptions options)
         {
-            return Post<bool, string>(FreeMethods.UserDisable, options);
+            return Post<bool, string>(FreeIpaApiMethods.UserDisable, options);
         }
 
         public Task<bool> UserEnable(FreeIpaUserEnableRequestOptions options)
         {
-            return Post<bool, string>(FreeMethods.UserEnable, options);
+            return Post<bool, string>(FreeIpaApiMethods.UserEnable, options);
         }
 
         public async Task<string[]> UserDel(FreeIpaUserDelRequestOptions options, bool stage = false)
         {
             var result = await Post<FreeIpaUserDelResult, string[]>(
-                stage ? FreeMethods.StageUserDel : FreeMethods.UserDel, options);
+                stage ? FreeIpaApiMethods.StageUserDel : FreeIpaApiMethods.UserDel, options);
 
             return result?.Failed;
         }
 
         public async Task<string[]> UserUndel(FreeIpaUserUndelRequestOptions options)
         {
-            var result = await Post<FreeIpaUserUndelResult, string[]>(FreeMethods.UserUndel, options);
+            var result = await Post<FreeIpaUserUndelResult, string[]>(FreeIpaApiMethods.UserUndel, options);
             return result?.Error;
         }
 
         public async Task<FreeIpaUser> StageUserActivate(FreeIpaStageUserActivateRequestOptions options)
         {
-            var user = await Post<FreeIpaUser, string>(FreeMethods.StageUserActivate, options);
+            var user = await Post<FreeIpaUser, string>(FreeIpaApiMethods.StageUserActivate, options);
             user.Stage = false;
             return user;
         }
@@ -142,7 +142,7 @@ namespace FreeIpaClient
             var httpContent = new StringContent(requestString, Encoding.UTF8, MediaTypeNames.Application.Json);
 
             _httpClient.DefaultRequestHeaders.Referrer = _config.Host;
-            var responseMessage = await _httpClient.PostAsync(FreeIpaRoutes.Api, httpContent);
+            var responseMessage = await _httpClient.PostAsync(FreeIpaConstants.Api, httpContent);
             responseMessage.EnsureSuccessStatusCode();
 
             var content = await responseMessage.Content.ReadAsStringAsync();
@@ -160,12 +160,12 @@ namespace FreeIpaClient
         {
             var httpContent = new FormUrlEncodedContent(new[]
             {
-                new KeyValuePair<string, string>(FreeMethods.User, _config.User),
-                new KeyValuePair<string, string>(FreeMethods.Password, _config.Password)
+                new KeyValuePair<string, string>(FreeIpaConstants.User, _config.User),
+                new KeyValuePair<string, string>(FreeIpaConstants.Password, _config.Password)
             });
 
             _httpClient.DefaultRequestHeaders.Referrer = _config.Host;
-            var response = await _httpClient.PostAsync(FreeIpaRoutes.Login, httpContent);
+            var response = await _httpClient.PostAsync(FreeIpaConstants.Login, httpContent);
 
             if (!response.IsSuccessStatusCode && response.Headers.TryGetValues("X-IPA-Rejection-Reason", out var rejectionReasons))
             {
@@ -174,7 +174,7 @@ namespace FreeIpaClient
 
             response.EnsureSuccessStatusCode();
 
-            if (!response.Headers.TryGetValues("Set-Cookie", out var cookies) || !cookies.Any(c => c.Contains(FreeMethods.IpaSession)))
+            if (!response.Headers.TryGetValues("Set-Cookie", out var cookies) || !cookies.Any(c => c.Contains(FreeIpaConstants.IpaSession)))
             {
                 throw new FreeIpaException("FreeIPA login error: Response doesn't contain ipa_session cookie.", response.StatusCode);
             }

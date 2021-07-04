@@ -3,9 +3,6 @@ using System.Net;
 
 namespace FreeIpaClient.Exceptions
 {
-    /// <summary>
-    /// ???
-    /// </summary>
     public class FreeIpaException : Exception
     {
         public const int InvalidCredential = 2100;        
