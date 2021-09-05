@@ -2,9 +2,9 @@
 
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
-        <PackageVersion>0.0.0-alpha</PackageVersion>
+        <PackageVersion>1.0.0</PackageVersion>
         <Authors>grroma01</Authors>
-        <Description>Client for working with API FreeIpa in C #</Description>
+        <Description>Client for working with API FreeIpa in C#</Description>
         <PackageProjectUrl>https://github.com/grroma/FreeIpaClient</PackageProjectUrl>
         <PackageLicenseUrl>https://github.com/grroma/FreeIpaClient/blob/master/LICENSE</PackageLicenseUrl>
         <PackageIconUrl>FreeIpaClient/icon.png</PackageIconUrl>
