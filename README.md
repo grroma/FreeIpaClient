@@ -2,7 +2,7 @@
 
 The client implements interaction with the API of the FreeIPA server.
 
-## Install package
+## Install [NuGet package](https://www.nuget.org/packages/FreeIpaClient/1.0.0)
 
 `dotnet add package FreeIpaClient --version 1.0.0`
 
