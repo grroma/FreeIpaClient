@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
-        <PackageVersion>1.0.0</PackageVersion>
+        <TargetFramework>net6.0</TargetFramework>
+        <PackageVersion>6.0.0</PackageVersion>
         <Authors>grroma01</Authors>
         <Description>Client for working with API FreeIpa in C#</Description>
         <PackageProjectUrl>https://github.com/grroma/FreeIpaClient</PackageProjectUrl>
@@ -13,7 +13,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     </ItemGroup>
 
 </Project>
