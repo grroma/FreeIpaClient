@@ -94,14 +94,14 @@ namespace FreeIpaClient.Tests.Tests
         {
             using (new AssertionScope())
             {
-                options.Uid.Should().Equals(user.Uid.Single());
-                options.Givenname.Should().Equals(user.Givenname.Single());
-                options.Sn.Should().Equals(user.Sn.Single());
-                options.Cn.Should().Equals(user.Cn.Single());
-                options.Mail.Should().Equals(user.Mail.Single());
-                options.Mobile.Should().Equals(user.Mobile.Single());
-                options.Ou.Should().Equals(user.Ou.Single());
-                options.Title.Should().Equals(user.Title.Single());
+                options.Uid.Should().BeEquivalentTo(user.Uid.Single());
+                options.Givenname.Should().BeEquivalentTo(user.Givenname.Single());
+                options.Sn.Should().BeEquivalentTo(user.Sn.Single());
+                options.Cn.Should().BeEquivalentTo(user.Cn.Single());
+                options.Mail.Should().BeEquivalentTo(user.Mail.Single());
+                options.Mobile.Should().BeEquivalentTo(user.Mobile.Single());
+                options.Ou.Should().BeEquivalentTo(user.Ou.Single());
+                options.Title.Should().BeEquivalentTo(user.Title.Single());
             }
         }
         

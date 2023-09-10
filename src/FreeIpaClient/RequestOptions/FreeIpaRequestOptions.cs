@@ -72,8 +72,6 @@ namespace FreeIpaClient.RequestOptions
         public string[] Uid { get; set; }
 
         public bool Continue { get; set; }
-
-        public bool Preserve { get; set; } = false;
     }
     
     public class FreeIpaUserDelResult
