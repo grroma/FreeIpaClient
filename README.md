@@ -4,7 +4,7 @@ The client implements interaction with the API of the FreeIPA server.
 
 ## Install [NuGet package](https://www.nuget.org/packages/FreeIpaClient/1.0.0)
 
-`dotnet add package FreeIpaClient --version 1.0.0`
+`dotnet add package FreeIpaClient --version 6.0.0`
 
 ## DI registration
 
@@ -21,7 +21,7 @@ Register DI in `Startup.cs.` For example:
             Host = new Uri("https://ipa.demo1.freeipa.org/ipa/"),
             User = "admin",
             Password = "Secret123",
-            ApiVersion = "2.240"
+            ApiVersion = "2.251"
         }));
    // ...            
 ```
