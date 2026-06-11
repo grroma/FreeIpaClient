@@ -25,5 +25,9 @@ namespace FreeIpaClient.Constants
         public const string UserUndel = "user_undel";
         public const string StageUserDel = "stageuser_del";
         public const string StageUserActivate = "stageuser_activate";
+        public const string Env = "env";
+        public const string CommandShow = "command_show";
+        public const string JsonMetadata = "json_metadata";
+        public const string SessionLogout = "session_logout";
     }
 }
