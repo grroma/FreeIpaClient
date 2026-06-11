@@ -1,5 +1,9 @@
 # FreeIpaClient
 
+![dotnet](https://img.shields.io/badge/dotnet-10-blue?logo=dotnet)
+[![nuget](https://img.shields.io/badge/nuget-10.0.0-blue?logo=nuget)](https://www.nuget.org/packages/FreeIpaClient)
+[![test](https://github.com/grroma/FreeIpaClient/actions/workflows/test.yml/badge.svg)](https://github.com/grroma/FreeIpaClient/actions/workflows/test.yml)
+
 The client implements interaction with the API of the FreeIPA server.
 
 ## Install [NuGet package](https://www.nuget.org/packages/FreeIpaClient)
@@ -9,7 +13,6 @@ The client implements interaction with the API of the FreeIPA server.
 ## Example
 
 There is a runnable console example in `examples/FreeIpaClient.Example`.
-It references the library project directly and is marked as not packable.
 
 ```bash
 dotnet run --project examples/FreeIpaClient.Example
