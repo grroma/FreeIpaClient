@@ -20,11 +20,14 @@ Register DI in `Startup.cs.` For example:
         {
             Host = new Uri("https://ipa.demo1.freeipa.org/ipa/"),
             User = "admin",
-            Password = "Secret123",
-            ApiVersion = "2.251"
+            Password = "Secret123"
         }));
    // ...            
 ```
+
+`ApiVersion` is detected from FreeIPA `env` by default. You can still set it explicitly in `FreeIpaConfig.ApiVersion`
+if you need to pin client/server compatibility.
+
 ## Options example
 ```json
 {
@@ -57,7 +60,15 @@ Register DI in `Startup.cs.` For example:
 - user_undel
 - stageuser_del
 - stageuser_activate
+- session_logout
+- env
+- command_show
+- json_metadata
 ```
+
+For commands where FreeIPA returns response metadata, use `PostResult`, `PostResponse`,
+`UserFindResult`, or `StageUserFindResult` to access `count`, `truncated`, `failed`,
+`completed`, and `messages`.
 
 ## Tests
 You can run tests to verify that your application is working correctly. To do this, edit the file `testsettings.json`
