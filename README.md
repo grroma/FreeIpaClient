@@ -6,6 +6,15 @@ The client implements interaction with the API of the FreeIPA server.
 
 `dotnet add package FreeIpaClient --version 10.0.0`
 
+## Example
+
+There is a runnable console example in `examples/FreeIpaClient.Example`.
+It references the library project directly and is marked as not packable.
+
+```bash
+dotnet run --project examples/FreeIpaClient.Example
+```
+
 ## DI registration
 
 For the FreeIpaClient's work, input parameters are required: `HttpClient()` and `FreeIpaConfig()`

@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeIpaClient", "FreeIpaCli
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeIpaClient.Tests", "FreeIpaClient.Tests\FreeIpaClient.Tests.csproj", "{A5FF3C63-248D-4017-9F81-A525AD4A65A8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeIpaClient.Example", "..\examples\FreeIpaClient.Example\FreeIpaClient.Example.csproj", "{BFECF4B7-C584-4468-9830-4404253BB1C7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{A5FF3C63-248D-4017-9F81-A525AD4A65A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A5FF3C63-248D-4017-9F81-A525AD4A65A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A5FF3C63-248D-4017-9F81-A525AD4A65A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BFECF4B7-C584-4468-9830-4404253BB1C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFECF4B7-C584-4468-9830-4404253BB1C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFECF4B7-C584-4468-9830-4404253BB1C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFECF4B7-C584-4468-9830-4404253BB1C7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
