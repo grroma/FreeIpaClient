@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using FreeIpaClient.Models;
 using FreeIpaClient.RequestOptions;
 using Xunit;
 
@@ -15,8 +16,7 @@ namespace FreeIpaClient.Tests.Tests
             var addedUser = await _client.UserAdd(userAddOptions, stage);
             MarkForCleanup(addedUser);
 
-            var users = await _client
-                .UserFind(new FreeIpaUserFindRequestOptions { Uid = userAddOptions.Uid });
+            var users = await FindUsers(new FreeIpaUserFindRequestOptions { Uid = userAddOptions.Uid }, stage);
 
             Assert.NotNull(users);
             Assert.Single(users);
@@ -35,8 +35,7 @@ namespace FreeIpaClient.Tests.Tests
             var addUserResult = await _client.UserAdd(userAddOptions, stage);
             MarkForCleanup(addUserResult);
 
-            var users = await _client
-                .UserFind(new FreeIpaUserFindRequestOptions { Mail = userAddOptions.Mail });
+            var users = await FindUsers(new FreeIpaUserFindRequestOptions { Mail = userAddOptions.Mail }, stage);
 
             Assert.NotNull(users);
             Assert.Single(users);
@@ -55,8 +54,7 @@ namespace FreeIpaClient.Tests.Tests
             var addUserResult = await _client.UserAdd(userAddOptions, stage);
             MarkForCleanup(addUserResult);
 
-            var users = await _client
-                .UserFind(new FreeIpaUserFindRequestOptions() { Mobile = userAddOptions.Mobile });
+            var users = await FindUsers(new FreeIpaUserFindRequestOptions() { Mobile = userAddOptions.Mobile }, stage);
 
             Assert.NotNull(users);
             Assert.Single(users);
@@ -119,8 +117,7 @@ namespace FreeIpaClient.Tests.Tests
             var addUserResult2 = await _client.UserAdd(userAddOptions2, stage);
             MarkForCleanup(addUserResult2);
 
-            var users = await _client
-                .UserFind(new FreeIpaUserFindRequestOptions { Mail = userAddOptions1.Mail });
+            var users = await FindUsers(new FreeIpaUserFindRequestOptions { Mail = userAddOptions1.Mail }, stage);
 
             Assert.NotNull(users);
             Assert.Equal(2, users.Length);
@@ -140,11 +137,22 @@ namespace FreeIpaClient.Tests.Tests
             var addUserResult2 = await _client.UserAdd(userAddOptions2, stage);
             MarkForCleanup(addUserResult2);
 
-            var users = await _client
-                .UserFind(new FreeIpaUserFindRequestOptions() { Mobile = userAddOptions1.Mobile });
+            var users = await FindUsers(new FreeIpaUserFindRequestOptions() { Mobile = userAddOptions1.Mobile }, stage);
 
             Assert.NotNull(users);
             Assert.Equal(2, users.Length);
+        }
+
+        private Task<FreeIpaUser[]> FindUsers(FreeIpaUserFindRequestOptions options, bool stage)
+        {
+            return stage
+                ? _client.StageUserFind(new FreeIpaStageUserFindRequestOptions
+                {
+                    Uid = options.Uid,
+                    Mail = options.Mail,
+                    Mobile = options.Mobile
+                })
+                : _client.UserFind(options);
         }
     }
 }

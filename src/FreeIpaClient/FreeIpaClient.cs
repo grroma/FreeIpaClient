@@ -68,6 +68,12 @@ namespace FreeIpaClient
         {
             var users = 
                 await Post<FreeIpaUser[], string>(FreeIpaApiMethods.StageUserFind, options, false, true, true);
+
+            foreach (var user in users)
+            {
+                user.Stage = true;
+            }
+
             return users;
         }
         

@@ -1,0 +1,36 @@
+name: test
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: restore
+        run: dotnet restore src/FreeIpaClient.sln
+
+      - name: build
+        run: dotnet build src/FreeIpaClient.sln --configuration Release --no-restore
+
+      - name: test
+        run: dotnet test src/FreeIpaClient.Tests/FreeIpaClient.Tests.csproj --configuration Release --no-build

@@ -4,3 +4,4 @@
 /src/FreeIpaClient/obj/
 /.idea/
 /src/.idea/
+*.DotSettings.user
