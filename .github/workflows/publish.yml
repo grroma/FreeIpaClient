@@ -1,12 +1,19 @@
 name: publish to nuget
+
 on:
   push:
-    branches:
-      - master
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
 jobs:
   publish:
-    name: build, pack & publish
+    name: build, test, pack and publish
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     steps:
       - uses: actions/checkout@v6
 
@@ -15,22 +22,43 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      # Publish
-      - name: publish on version change
-        id: publish_nuget
-        uses: alirezanet/publish-nuget@v3.1.0
-        with:
-          # Filepath of the project to be packaged, relative to root of repository
-          PROJECT_FILE_PATH: ${{secrets.PROJECT_FILE_PATH}}
+      - name: resolve package version
+        id: version
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
+            echo "Tag '$GITHUB_REF_NAME' must look like v10.0.0 or v10.0.0-rc"
+            exit 1
+          fi
+          echo "value=$version" >> "$GITHUB_OUTPUT"
 
-          # Flag to toggle git tagging, enabled by default
-          TAG_COMMIT: true
+      - name: restore
+        run: dotnet restore src/FreeIpaClient.sln
 
-          # API key to authenticate with NuGet server
-          NUGET_KEY: ${{secrets.NUGET_KEY}}
+      - name: build
+        run: >
+          dotnet build src/FreeIpaClient.sln
+          --configuration Release
+          --no-restore
+          /p:Version=${{ steps.version.outputs.value }}
+          /p:PackageVersion=${{ steps.version.outputs.value }}
 
-          # NuGet server uri hosting the packages, defaults to https://api.nuget.org
-          NUGET_SOURCE: https://api.nuget.org
+      - name: test
+        run: dotnet test src/FreeIpaClient.Tests/FreeIpaClient.Tests.csproj --configuration Release --no-build --filter "Category!=Integration"
 
-          # Flag to toggle pushing symbols along with nuget package to the server, disabled by default
-          INCLUDE_SYMBOLS: true
+      - name: pack
+        run: >
+          dotnet pack src/FreeIpaClient/FreeIpaClient.csproj
+          --configuration Release
+          --no-build
+          --output artifacts/packages
+          /p:Version=${{ steps.version.outputs.value }}
+          /p:PackageVersion=${{ steps.version.outputs.value }}
+
+      - name: publish
+        run: >
+          dotnet nuget push "artifacts/packages/FreeIpaClient.${{ steps.version.outputs.value }}.nupkg"
+          --api-key "${{ secrets.NUGET_KEY }}"
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate

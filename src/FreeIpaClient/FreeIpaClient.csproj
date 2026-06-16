@@ -4,7 +4,7 @@
         <TargetFramework>net10.0</TargetFramework>
         <PackageId>FreeIpaClient</PackageId>
         <Title>FreeIpaClient</Title>
-        <Version>10.0.0</Version>
+        <Version>10.0.0-rc</Version>
         <Authors>grroma01</Authors>
         <Description>Client for working with the FreeIPA API in C#.</Description>
         <PackageProjectUrl>https://github.com/grroma/FreeIpaClient</PackageProjectUrl>
