@@ -1,11 +1,11 @@
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 namespace FreeIpaClient.Models
 {
     public class FreeIpaJsonMetadata
     {
-        public JObject Objects { get; set; }
-        public JObject Methods { get; set; }
-        public JObject Commands { get; set; }
+        public JsonElement Objects { get; set; }
+        public JsonElement Methods { get; set; }
+        public JsonElement Commands { get; set; }
     }
 }

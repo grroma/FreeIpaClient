@@ -1,7 +1,7 @@
 using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using FreeIpaClient.Exceptions;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace FreeIpaClient.Models
 {
@@ -9,7 +9,10 @@ namespace FreeIpaClient.Models
     {
         public FreeIpaResult<TResult, TValue> Result { get; set; }
         public FreeIpaError Error { get; set; }
+
+        [JsonConverter(typeof(FreeIpaStringJsonConverter))]
         public string Id { get; set; }
+
         public string Principal { get; set; }
         public string Version { get; set; }   
     }
@@ -23,11 +26,11 @@ namespace FreeIpaClient.Models
         public int? Total { get; set; }
         public bool? Truncated { get; set; }
         public int? Completed { get; set; }
-        public JToken Failed { get; set; }
+        public JsonElement? Failed { get; set; }
         public List<FreeIpaResultMessage> Messages { get; set; }
 
         [JsonExtensionData]
-        public IDictionary<string, JToken> AdditionalData { get; set; }
+        public IDictionary<string, JsonElement> AdditionalData { get; set; }
     }
     
     public class FreeIpaResultMessage

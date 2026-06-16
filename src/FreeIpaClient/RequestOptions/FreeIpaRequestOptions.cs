@@ -1,6 +1,5 @@
 using System.Collections.Generic;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Text.Json.Serialization;
 
 namespace FreeIpaClient.RequestOptions
 {
@@ -10,24 +9,18 @@ namespace FreeIpaClient.RequestOptions
         public bool? All { get; set; }
         public bool? Raw { get; set; }
 
-        [JsonProperty("no_members")]
+        [JsonPropertyName("no_members")]
         public bool? NoMembers { get; set; }
     }
 
     public sealed class FreeIpaDynamicRequestOptions : FreeIpaRequestOptions
     {
         [JsonExtensionData]
-        public IDictionary<string, JToken> Options { get; set; } = new Dictionary<string, JToken>();
+        public IDictionary<string, object> Options { get; set; } = new Dictionary<string, object>();
 
         public FreeIpaDynamicRequestOptions Add(string name, object value)
         {
-            Options[name] = value switch
-            {
-                null => JValue.CreateNull(),
-                JToken token => token,
-                _ => JToken.FromObject(value)
-            };
-
+            Options[name] = value;
             return this;
         }
     }
@@ -38,7 +31,7 @@ namespace FreeIpaClient.RequestOptions
         public string Givenname { get; set; }
         public string Sn { get; set; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string Cn { get; set; }
         public string Displayname { get; set; }
         public string Initials { get; set; }
@@ -90,7 +83,7 @@ namespace FreeIpaClient.RequestOptions
     {
         public bool? Noprivate { get; set; }
 
-        [JsonProperty("from_delete")]
+        [JsonPropertyName("from_delete")]
         public bool? FromDelete { get; set; }
     }
     
@@ -154,43 +147,43 @@ namespace FreeIpaClient.RequestOptions
         public int? Sizelimit { get; set; }
         public bool? Whoami { get; set; }
 
-        [JsonProperty("pkey_only")]
+        [JsonPropertyName("pkey_only")]
         public bool? PkeyOnly { get; set; }
 
-        [JsonProperty("in_group")]
+        [JsonPropertyName("in_group")]
         public string[] InGroup { get; set; }
 
-        [JsonProperty("not_in_group")]
+        [JsonPropertyName("not_in_group")]
         public string[] NotInGroup { get; set; }
 
-        [JsonProperty("in_netgroup")]
+        [JsonPropertyName("in_netgroup")]
         public string[] InNetgroup { get; set; }
 
-        [JsonProperty("not_in_netgroup")]
+        [JsonPropertyName("not_in_netgroup")]
         public string[] NotInNetgroup { get; set; }
 
-        [JsonProperty("in_role")]
+        [JsonPropertyName("in_role")]
         public string[] InRole { get; set; }
 
-        [JsonProperty("not_in_role")]
+        [JsonPropertyName("not_in_role")]
         public string[] NotInRole { get; set; }
 
-        [JsonProperty("in_hbacrule")]
+        [JsonPropertyName("in_hbacrule")]
         public string[] InHbacrule { get; set; }
 
-        [JsonProperty("not_in_hbacrule")]
+        [JsonPropertyName("not_in_hbacrule")]
         public string[] NotInHbacrule { get; set; }
 
-        [JsonProperty("in_sudorule")]
+        [JsonPropertyName("in_sudorule")]
         public string[] InSudorule { get; set; }
 
-        [JsonProperty("not_in_sudorule")]
+        [JsonPropertyName("not_in_sudorule")]
         public string[] NotInSudorule { get; set; }
 
-        [JsonProperty("in_subid")]
+        [JsonPropertyName("in_subid")]
         public string[] InSubid { get; set; }
 
-        [JsonProperty("not_in_subid")]
+        [JsonPropertyName("not_in_subid")]
         public string[] NotInSubid { get; set; }
     }
     

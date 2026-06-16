@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace FreeIpaClient.Models
 {
@@ -48,34 +48,34 @@ namespace FreeIpaClient.Models
         public string[] Objectclass { get; set; }
         public string Dn { get; set; }
 
-        [JsonProperty("has_password")]
+        [JsonPropertyName("has_password")]
         public bool[] HasPassword { get; set; }
 
-        [JsonProperty("has_keytab")]
+        [JsonPropertyName("has_keytab")]
         public bool[] HasKeytab { get; set; }
 
-        [JsonProperty("memberof_group")]
+        [JsonPropertyName("memberof_group")]
         public string[] MemberofGroup { get; set; }
 
-        [JsonProperty("memberofindirect_group")]
+        [JsonPropertyName("memberofindirect_group")]
         public string[] MemberofindirectGroup { get; set; }
 
-        [JsonProperty("memberof_role")]
+        [JsonPropertyName("memberof_role")]
         public string[] MemberofRole { get; set; }
 
-        [JsonProperty("memberof_hbacrule")]
+        [JsonPropertyName("memberof_hbacrule")]
         public string[] MemberofHbacrule { get; set; }
 
-        [JsonProperty("memberof_sudorule")]
+        [JsonPropertyName("memberof_sudorule")]
         public string[] MemberofSudorule { get; set; }
 
-        [JsonProperty("memberof_subid")]
+        [JsonPropertyName("memberof_subid")]
         public string[] MemberofSubid { get; set; }
 
-        [JsonProperty("memberindirect_group")]
+        [JsonPropertyName("memberindirect_group")]
         public string[] MemberindirectGroup { get; set; }
 
-        [JsonProperty("memberindirect_role")]
+        [JsonPropertyName("memberindirect_role")]
         public string[] MemberindirectRole { get; set; }
 
         public bool Stage { get; set; }
@@ -83,6 +83,6 @@ namespace FreeIpaClient.Models
         public List<bool> Nsaccountlock { get; set; }
 
         [JsonExtensionData]
-        public IDictionary<string, JToken> AdditionalData { get; set; }
+        public IDictionary<string, JsonElement> AdditionalData { get; set; }
     }
 }

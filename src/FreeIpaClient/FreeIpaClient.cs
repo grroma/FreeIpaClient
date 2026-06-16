@@ -4,6 +4,8 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using FreeIpaClient.Constants;
@@ -11,14 +13,32 @@ using FreeIpaClient.Exceptions;
 using FreeIpaClient.Interfaces;
 using FreeIpaClient.Models;
 using FreeIpaClient.RequestOptions;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 
 namespace FreeIpaClient
 {
     public class FreeIpaApiClient : IFreeIpaApiClient
     {
+        private static readonly JsonSerializerOptions DeserializeOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            Converters =
+            {
+                new FreeIpaBooleanJsonConverter()
+            }
+        };
+
+        private static readonly JsonSerializerOptions SerializeOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
+
+        private static readonly JsonSerializerOptions SerializeOptionsWithNulls = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.Never
+        };
+
         private readonly HttpClient _httpClient;
         private readonly FreeIpaConfig _config;
         private bool _authenticated;
@@ -227,7 +247,7 @@ namespace FreeIpaClient
 
         public async Task<FreeIpaJsonMetadata> JsonMetadata(CancellationToken cancellationToken = default)
         {
-            var result = await PostResultInternal<JObject, string>(
+            var result = await PostResultInternal<JsonElement, string>(
                 FreeIpaApiMethods.JsonMetadata,
                 new FreeIpaRequestOptions(),
                 skipApiVersion: false,
@@ -235,9 +255,9 @@ namespace FreeIpaClient
 
             return new FreeIpaJsonMetadata
             {
-                Objects = result.AdditionalData?["objects"] as JObject,
-                Methods = result.AdditionalData?["methods"] as JObject,
-                Commands = result.AdditionalData?["commands"] as JObject
+                Objects = GetAdditionalData(result, "objects"),
+                Methods = GetAdditionalData(result, "methods"),
+                Commands = GetAdditionalData(result, "commands")
             };
         }
         
@@ -371,7 +391,7 @@ namespace FreeIpaClient
             responseMessage.EnsureSuccessStatusCode();
 
             var content = await responseMessage.Content.ReadAsStringAsync(cancellationToken);
-            var response = JsonConvert.DeserializeObject<FreeIpaResponse<TResult, TValue>>(content);
+            var response = JsonSerializer.Deserialize<FreeIpaResponse<TResult, TValue>>(content, DeserializeOptions);
 
             if (response == null)
             {
@@ -445,15 +465,7 @@ namespace FreeIpaClient
             var request = args == null ? new FreeIpaRequest(method, options)
                 : new FreeIpaRequest(method, options, args);
 
-            return JsonConvert.SerializeObject(request, new JsonSerializerSettings
-            {
-                ContractResolver = new DefaultContractResolver()
-                {
-                    NamingStrategy = new CamelCaseNamingStrategy(),
-                },
-                Formatting = Formatting.None,
-                NullValueHandling = sendNulls ? NullValueHandling.Include : NullValueHandling.Ignore
-            });
+            return JsonSerializer.Serialize(request, sendNulls ? SerializeOptionsWithNulls : SerializeOptions);
         }
 
         private Task<HttpResponseMessage> SendRequest(
@@ -487,6 +499,15 @@ namespace FreeIpaClient
             {
                 user.Stage = stage;
             }
+        }
+
+        private static JsonElement GetAdditionalData<TResult, TValue>(
+            FreeIpaResult<TResult, TValue> result,
+            string name)
+        {
+            return result.AdditionalData != null && result.AdditionalData.TryGetValue(name, out var value)
+                ? value
+                : default;
         }
     }
 }

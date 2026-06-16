@@ -1,7 +1,7 @@
 using FreeIpaClient;
 using FreeIpaClient.Models;
 using FreeIpaClient.RequestOptions;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 var host = GetStringEnvironmentVariable("FREEIPA_HOST", "https://ipa.test.local/ipa/");
 var user = GetStringEnvironmentVariable("FREEIPA_USER", "admin");
@@ -57,18 +57,19 @@ try
     Console.WriteLine($"Search count: {findResult.Count}");
     Console.WriteLine($"Search truncated: {findResult.Truncated.GetValueOrDefault()}");
 
-    var groupFindResult = await client.PostResult<JObject[], string>(
+    var groupFindResult = await client.PostResult<JsonElement[], string>(
         "group_find",
         new FreeIpaDynamicRequestOptions()
             .Add("cn", "admins")
             .Add("pkey_only", false),
         all: true,
         raw: true);
-    var adminsGroup = groupFindResult.Result.FirstOrDefault(group =>
-        group["cn"]?.Values<string>().Contains("admins") == true);
+    var adminsCn = groupFindResult.Result
+        .Select(GetFirstCn)
+        .FirstOrDefault(cn => cn == "admins");
 
     Console.WriteLine($"Dynamic group_find count: {groupFindResult.Count}");
-    Console.WriteLine($"Dynamic group_find first CN: {adminsGroup?["cn"]?.FirstOrDefault()}");
+    Console.WriteLine($"Dynamic group_find first CN: {adminsCn}");
 }
 finally
 {
@@ -110,4 +111,21 @@ static bool GetBooleanEnvironmentVariable(string name, bool defaultValue)
     return value == null
         ? defaultValue
         : bool.TryParse(value, out var parsed) && parsed;
+}
+
+static string? GetFirstCn(JsonElement group)
+{
+    if (group.ValueKind != JsonValueKind.Object ||
+        !group.TryGetProperty("cn", out var cn) ||
+        cn.ValueKind != JsonValueKind.Array)
+    {
+        return null;
+    }
+
+    foreach (var value in cn.EnumerateArray())
+    {
+        return value.GetString();
+    }
+
+    return null;
 }
