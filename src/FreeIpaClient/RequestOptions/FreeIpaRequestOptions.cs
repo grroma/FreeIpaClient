@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace FreeIpaClient.RequestOptions
 {
@@ -10,6 +12,24 @@ namespace FreeIpaClient.RequestOptions
 
         [JsonProperty("no_members")]
         public bool? NoMembers { get; set; }
+    }
+
+    public sealed class FreeIpaDynamicRequestOptions : FreeIpaRequestOptions
+    {
+        [JsonExtensionData]
+        public IDictionary<string, JToken> Options { get; set; } = new Dictionary<string, JToken>();
+
+        public FreeIpaDynamicRequestOptions Add(string name, object value)
+        {
+            Options[name] = value switch
+            {
+                null => JValue.CreateNull(),
+                JToken token => token,
+                _ => JToken.FromObject(value)
+            };
+
+            return this;
+        }
     }
     
     public class FreeIpaUserAddModRequestOptions : FreeIpaRequestOptionsAttr

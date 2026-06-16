@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using FreeIpaClient.RequestOptions;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace FreeIpaClient.Tests.Tests
@@ -55,6 +56,23 @@ namespace FreeIpaClient.Tests.Tests
 
             Assert.True(metadata.Objects.Properties().Any());
             Assert.True(metadata.Commands.Properties().Any());
+        }
+
+        [Fact]
+        public async Task DynamicRequestOptions_can_call_untyped_group_find()
+        {
+            var result = await _client.PostResult<JObject[], string>(
+                "group_find",
+                new FreeIpaDynamicRequestOptions()
+                    .Add("cn", "admins")
+                    .Add("pkey_only", false),
+                all: true,
+                raw: true);
+
+            Assert.NotNull(result);
+            Assert.True(result.Count >= 1);
+            Assert.Contains(result.Result, group =>
+                group["cn"]?.Values<string>().Contains("admins") == true);
         }
     }
 }

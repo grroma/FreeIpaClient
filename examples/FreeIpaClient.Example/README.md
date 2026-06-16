@@ -1,6 +1,7 @@
 # FreeIpaClient Example
 
 Console example that references the local `FreeIpaClient` project and calls a FreeIPA server.
+It demonstrates typed API calls and a dynamic call to an untyped FreeIPA command.
 
 The project is marked with `IsPackable=false` and is not included in the NuGet package.
 

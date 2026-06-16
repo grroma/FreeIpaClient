@@ -1,6 +1,7 @@
 using FreeIpaClient;
 using FreeIpaClient.Models;
 using FreeIpaClient.RequestOptions;
+using Newtonsoft.Json.Linq;
 
 var host = GetStringEnvironmentVariable("FREEIPA_HOST", "https://ipa.test.local/ipa/");
 var user = GetStringEnvironmentVariable("FREEIPA_USER", "admin");
@@ -55,6 +56,19 @@ try
     var findResult = await client.UserFindResult(new FreeIpaUserFindRequestOptions { Mail = addOptions.Mail });
     Console.WriteLine($"Search count: {findResult.Count}");
     Console.WriteLine($"Search truncated: {findResult.Truncated.GetValueOrDefault()}");
+
+    var groupFindResult = await client.PostResult<JObject[], string>(
+        "group_find",
+        new FreeIpaDynamicRequestOptions()
+            .Add("cn", "admins")
+            .Add("pkey_only", false),
+        all: true,
+        raw: true);
+    var adminsGroup = groupFindResult.Result.FirstOrDefault(group =>
+        group["cn"]?.Values<string>().Contains("admins") == true);
+
+    Console.WriteLine($"Dynamic group_find count: {groupFindResult.Count}");
+    Console.WriteLine($"Dynamic group_find first CN: {adminsGroup?["cn"]?.FirstOrDefault()}");
 }
 finally
 {
