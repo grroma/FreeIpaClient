@@ -11,6 +11,7 @@ using Xunit;
 
 namespace FreeIpaClient.Tests.Tests
 {
+    [Trait("Category", "Integration")]
     public partial class FreeIpaClientTests : IDisposable
     {
         private const string TestUserPrefix = "fitest";

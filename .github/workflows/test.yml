@@ -29,4 +29,4 @@ jobs:
         run: dotnet build src/FreeIpaClient.sln --configuration Release --no-restore
 
       - name: test
-        run: dotnet test src/FreeIpaClient.Tests/FreeIpaClient.Tests.csproj --configuration Release --no-build
+        run: dotnet test src/FreeIpaClient.Tests/FreeIpaClient.Tests.csproj --configuration Release --no-build --filter "Category!=Integration"
