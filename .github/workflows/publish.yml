@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   publish:
@@ -28,7 +29,7 @@ jobs:
         run: |
           version="${GITHUB_REF_NAME}"
           if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
-            echo "Tag '$GITHUB_REF_NAME' must look like v10.0.0 or v10.0.0-rc"
+            echo "Tag '$GITHUB_REF_NAME' must look like 10.0.0 or 10.0.0-rc"
             exit 1
           fi
           echo "value=$version" >> "$GITHUB_OUTPUT"
@@ -56,9 +57,15 @@ jobs:
           /p:Version=${{ steps.version.outputs.value }}
           /p:PackageVersion=${{ steps.version.outputs.value }}
 
+      - name: NuGet login
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: grroma
+
       - name: publish
         run: >
           dotnet nuget push "artifacts/packages/FreeIpaClient.${{ steps.version.outputs.value }}.nupkg"
-          --api-key "${{ secrets.NUGET_KEY }}"
+          --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
           --source https://api.nuget.org/v3/index.json
           --skip-duplicate
