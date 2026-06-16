@@ -1,9 +1,5 @@
-/src/FreeIpaClient.Tests/bin/
-/src/FreeIpaClient.Tests/obj/
-/src/FreeIpaClient/bin/
-/src/FreeIpaClient/obj/
-/examples/**/bin/
-/examples/**/obj/
-/.idea/
-/src/.idea/
+bin/
+obj/
 *.DotSettings.user
+
+.idea/

@@ -30,6 +30,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\FreeIpaClient\FreeIpaClient.csproj" />
+      <ProjectReference Include="..\..\tools\FreeIpaClient.CodeGen\FreeIpaClient.CodeGen.csproj" />
     </ItemGroup>
 
 </Project>

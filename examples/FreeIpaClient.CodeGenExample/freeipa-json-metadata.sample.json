@@ -1,0 +1,72 @@
+{
+  "result": {
+    "commands": {
+      "group_find": {
+        "name": "group_find",
+        "doc": "Search for groups.",
+        "takes_args": [
+          {
+            "name": "criteria",
+            "type": "str",
+            "doc": "Search criteria",
+            "required": false,
+            "multivalue": false
+          }
+        ],
+        "takes_options": [
+          {
+            "name": "cn",
+            "type": "str",
+            "doc": "Group name",
+            "required": false,
+            "multivalue": false
+          },
+          {
+            "name": "pkey_only",
+            "type": "bool",
+            "doc": "Results should contain primary key attribute only.",
+            "required": false,
+            "multivalue": false
+          }
+        ]
+      },
+      "user_find": {
+        "name": "user_find",
+        "doc": "Search for users.",
+        "takes_args": [
+          {
+            "name": "criteria",
+            "type": "str",
+            "doc": "Search criteria",
+            "required": false,
+            "multivalue": false
+          }
+        ],
+        "takes_options": [
+          {
+            "name": "uid",
+            "type": "str",
+            "doc": "User login",
+            "required": false,
+            "multivalue": false
+          },
+          {
+            "name": "mail",
+            "type": "str",
+            "doc": "Email address",
+            "required": false,
+            "multivalue": false
+          },
+          {
+            "name": "pkey_only",
+            "type": "bool",
+            "doc": "Results should contain primary key attribute only.",
+            "required": false,
+            "multivalue": false
+          }
+        ]
+      }
+    }
+  },
+  "error": null
+}
