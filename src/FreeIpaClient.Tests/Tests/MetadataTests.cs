@@ -12,7 +12,7 @@ namespace FreeIpaClient.Tests.Tests
         public async Task UserFindResult_returns_result_metadata()
         {
             var userAddOptions = NewUserRequestOptionsFixture();
-            var addedUser = await _client.UserAdd(userAddOptions);
+            var addedUser = await UserAddForTest(userAddOptions);
             MarkForCleanup(addedUser);
 
             var result = await _client.UserFindResult(new FreeIpaUserFindRequestOptions

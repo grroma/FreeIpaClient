@@ -11,7 +11,7 @@ namespace FreeIpaClient.Tests.Tests
         public async Task UserAdd(bool stage)
         {
             var options = NewUserRequestOptionsFixture();
-            var result = await _client.UserAdd(options, stage);
+            var result = await UserAddForTest(options, stage);
 
             Assert.NotNull(result);
             Assert.Equal(stage, result.Stage);

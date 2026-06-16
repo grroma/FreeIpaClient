@@ -13,7 +13,7 @@ namespace FreeIpaClient.Tests.Tests
         public async Task UserFind_returns_single_user_by_id_with_all_mapped_fields(bool stage)
         {
             var userAddOptions = NewUserRequestOptionsFixture();
-            var addedUser = await _client.UserAdd(userAddOptions, stage);
+            var addedUser = await UserAddForTest(userAddOptions, stage);
             MarkForCleanup(addedUser);
 
             var users = await FindUsers(new FreeIpaUserFindRequestOptions { Uid = userAddOptions.Uid }, stage);
@@ -32,7 +32,7 @@ namespace FreeIpaClient.Tests.Tests
         public async Task UserFind_returns_single_user_by_mail_with_all_mapped_fields(bool stage)
         {
             var userAddOptions = NewUserRequestOptionsFixture();
-            var addUserResult = await _client.UserAdd(userAddOptions, stage);
+            var addUserResult = await UserAddForTest(userAddOptions, stage);
             MarkForCleanup(addUserResult);
 
             var users = await FindUsers(new FreeIpaUserFindRequestOptions { Mail = userAddOptions.Mail }, stage);
@@ -51,7 +51,7 @@ namespace FreeIpaClient.Tests.Tests
         public async Task UserFind_returns_single_user_by_mobile_with_all_mapped_fields(bool stage)
         {
             var userAddOptions = NewUserRequestOptionsFixture();
-            var addUserResult = await _client.UserAdd(userAddOptions, stage);
+            var addUserResult = await UserAddForTest(userAddOptions, stage);
             MarkForCleanup(addUserResult);
 
             var users = await FindUsers(new FreeIpaUserFindRequestOptions() { Mobile = userAddOptions.Mobile }, stage);
@@ -109,12 +109,12 @@ namespace FreeIpaClient.Tests.Tests
         public async Task UserFind_returns_two_users_by_not_unique_mail(bool stage)
         {
             var userAddOptions1 = NewUserRequestOptionsFixture();
-            var addUserResult1 = await _client.UserAdd(userAddOptions1, stage);
+            var addUserResult1 = await UserAddForTest(userAddOptions1, stage);
             MarkForCleanup(addUserResult1);
 
             var userAddOptions2 = NewUserRequestOptionsFixture();
             userAddOptions2.Mail = userAddOptions1.Mail;
-            var addUserResult2 = await _client.UserAdd(userAddOptions2, stage);
+            var addUserResult2 = await UserAddForTest(userAddOptions2, stage);
             MarkForCleanup(addUserResult2);
 
             var users = await FindUsers(new FreeIpaUserFindRequestOptions { Mail = userAddOptions1.Mail }, stage);
@@ -129,12 +129,12 @@ namespace FreeIpaClient.Tests.Tests
         public async Task UserFind_returns_two_usesr_by_not_unique_mobile(bool stage)
         {
             var userAddOptions1 = NewUserRequestOptionsFixture();
-            var addUserResult1 = await _client.UserAdd(userAddOptions1, stage);
+            var addUserResult1 = await UserAddForTest(userAddOptions1, stage);
             MarkForCleanup(addUserResult1);
 
             var userAddOptions2 = NewUserRequestOptionsFixture();
             userAddOptions2.Mobile = userAddOptions1.Mobile;
-            var addUserResult2 = await _client.UserAdd(userAddOptions2, stage);
+            var addUserResult2 = await UserAddForTest(userAddOptions2, stage);
             MarkForCleanup(addUserResult2);
 
             var users = await FindUsers(new FreeIpaUserFindRequestOptions() { Mobile = userAddOptions1.Mobile }, stage);

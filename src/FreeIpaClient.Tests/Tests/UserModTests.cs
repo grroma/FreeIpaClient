@@ -11,7 +11,7 @@ namespace FreeIpaClient.Tests.Tests
         public async Task UserMod(bool stage)
         {
             var addUserOptions = NewUserRequestOptionsFixture();
-            await _client.UserAdd(addUserOptions, stage);
+            await UserAddForTest(addUserOptions, stage);
 
             var userModOptions = NewUserRequestOptionsFixture();
             userModOptions.Uid = addUserOptions.Uid;

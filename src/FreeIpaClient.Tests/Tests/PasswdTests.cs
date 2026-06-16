@@ -11,7 +11,7 @@ namespace FreeIpaClient.Tests.Tests
         public async Task Passwd_sets_initial_password()
         {
             var addUserOptions = NewUserRequestOptionsFixture();
-            var addUserResult = await _client.UserAdd(addUserOptions);
+            var addUserResult = await UserAddForTest(addUserOptions);
             MarkForCleanup(addUserResult);
             var passwdOptions = new FreeIpaPasswdRequestOptions()
             {
@@ -29,7 +29,7 @@ namespace FreeIpaClient.Tests.Tests
         public async Task Passwd_updates_password()
         {
             var addUserOptions = NewUserRequestOptionsFixture();
-            var addUserResult = await _client.UserAdd(addUserOptions);
+            var addUserResult = await UserAddForTest(addUserOptions);
             MarkForCleanup(addUserResult);
 
             var initialPasswdOptions = new FreeIpaPasswdRequestOptions()
@@ -55,7 +55,7 @@ namespace FreeIpaClient.Tests.Tests
         public async Task Passwd_throws_exception_on_update_password_if_passed_wrong_current_password()
         {
             var addUserOptions = NewUserRequestOptionsFixture();
-            var addUserResult = await _client.UserAdd(addUserOptions);
+            var addUserResult = await UserAddForTest(addUserOptions);
             MarkForCleanup(addUserResult);
 
             var initialPasswdOptions = new FreeIpaPasswdRequestOptions()
