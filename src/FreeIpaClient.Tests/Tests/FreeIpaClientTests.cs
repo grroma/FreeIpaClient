@@ -2,12 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using FluentAssertions;
-using FluentAssertions.Execution;
 using FreeIpaClient.Interfaces;
 using FreeIpaClient.Models;
 using FreeIpaClient.RequestOptions;
 using Microsoft.Extensions.Configuration;
+using Xunit;
 
 namespace FreeIpaClient.Tests.Tests
 {
@@ -92,17 +91,14 @@ namespace FreeIpaClient.Tests.Tests
         
         private static void AssertUser(FreeIpaUserRequestOptions options, FreeIpaUser user)
         {
-            using (new AssertionScope())
-            {
-                options.Uid.Should().BeEquivalentTo(user.Uid.Single());
-                options.Givenname.Should().BeEquivalentTo(user.Givenname.Single());
-                options.Sn.Should().BeEquivalentTo(user.Sn.Single());
-                options.Cn.Should().BeEquivalentTo(user.Cn.Single());
-                options.Mail.Should().BeEquivalentTo(user.Mail.Single());
-                options.Mobile.Should().BeEquivalentTo(user.Mobile.Single());
-                options.Ou.Should().BeEquivalentTo(user.Ou.Single());
-                options.Title.Should().BeEquivalentTo(user.Title.Single());
-            }
+            Assert.Equal(options.Uid, user.Uid.Single());
+            Assert.Equal(options.Givenname, user.Givenname.Single());
+            Assert.Equal(options.Sn, user.Sn.Single());
+            Assert.Equal(options.Cn, user.Cn.Single());
+            Assert.Equal(options.Mail, user.Mail.Single());
+            Assert.Equal(options.Mobile, user.Mobile.Single());
+            Assert.Equal(options.Ou, user.Ou.Single());
+            Assert.Equal(options.Title, user.Title.Single());
         }
         
         private void MarkForCleanup(FreeIpaUser user)
