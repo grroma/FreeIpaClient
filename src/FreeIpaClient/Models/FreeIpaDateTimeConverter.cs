@@ -1,13 +1,7 @@
-using Newtonsoft.Json.Converters;
-
 namespace FreeIpaClient.Models
 {
-    public class FreeIpaDateTimeConverter : IsoDateTimeConverter
+    public static class FreeIpaDateTimeConverter
     {
         public const string Format = "yyyyMMddHHmmssZ";
-        public FreeIpaDateTimeConverter()
-        {
-            DateTimeFormat = Format;
-        }
     }
 }

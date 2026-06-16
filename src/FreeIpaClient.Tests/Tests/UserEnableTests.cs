@@ -11,7 +11,7 @@ namespace FreeIpaClient.Tests.Tests
         public async Task UserEnable_enables_user()
         {
             var addUserOptions = NewUserRequestOptionsFixture();
-            var addUserResult = await _client.UserAdd(addUserOptions);
+            var addUserResult = await UserAddForTest(addUserOptions);
             MarkForCleanup(addUserResult);
 
             await _client.UserDisable(
@@ -38,7 +38,7 @@ namespace FreeIpaClient.Tests.Tests
         public async Task UserEnable_throws_exception_if_user_already_enabled()
         {
             var addUserOptions = NewUserRequestOptionsFixture();
-            var addUserResult = await _client.UserAdd(addUserOptions);
+            var addUserResult = await UserAddForTest(addUserOptions);
             MarkForCleanup(addUserResult);
 
             var options = new FreeIpaUserEnableRequestOptions()

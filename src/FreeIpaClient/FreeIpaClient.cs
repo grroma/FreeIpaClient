@@ -1,24 +1,48 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using FreeIpaClient.Constants;
 using FreeIpaClient.Exceptions;
 using FreeIpaClient.Interfaces;
 using FreeIpaClient.Models;
 using FreeIpaClient.RequestOptions;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace FreeIpaClient
 {
     public class FreeIpaApiClient : IFreeIpaApiClient
     {
+        private static readonly JsonSerializerOptions DeserializeOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            Converters =
+            {
+                new FreeIpaBooleanJsonConverter()
+            }
+        };
+
+        private static readonly JsonSerializerOptions SerializeOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
+
+        private static readonly JsonSerializerOptions SerializeOptionsWithNulls = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.Never
+        };
+
         private readonly HttpClient _httpClient;
         private readonly FreeIpaConfig _config;
         private bool _authenticated;
+        private string _apiVersion;
 
         public FreeIpaApiClient(
             HttpClient httpClient, 
@@ -29,83 +53,212 @@ namespace FreeIpaClient
             httpClient.BaseAddress = _config.Host;
         }        
 
-        public async Task Ping()
+        public async Task Ping(CancellationToken cancellationToken = default)
         {
-            await Post<object, string>(FreeIpaApiMethods.Ping, new FreeIpaRequestOptions());
+            await Post<object, string>(FreeIpaApiMethods.Ping, new FreeIpaRequestOptions(), cancellationToken: cancellationToken);
         }
         
-        public async Task<FreeIpaUser> UserAdd(FreeIpaUserRequestOptions options, bool stage = false)
+        public async Task<FreeIpaUser> UserAdd(
+            FreeIpaUserRequestOptions options,
+            bool stage = false,
+            CancellationToken cancellationToken = default)
         {
             options.Sn ??= options.Uid;
             options.Givenname ??= options.Uid;
 
             var user = await Post<FreeIpaUser, string>(
-               stage ? FreeIpaApiMethods.StageUserAdd : FreeIpaApiMethods.UserAdd, options, false, true, true);
+               stage ? FreeIpaApiMethods.StageUserAdd : FreeIpaApiMethods.UserAdd,
+               options,
+               false,
+               true,
+               true,
+               cancellationToken: cancellationToken);
             user.Stage = stage;
             return user;
         }
         
-        public async Task<FreeIpaUser> UserMod(FreeIpaUserAddModRequestOptions options, bool stage = false)
+        public async Task<FreeIpaUser> UserMod(
+            FreeIpaUserAddModRequestOptions options,
+            bool stage = false,
+            CancellationToken cancellationToken = default)
         {
             var user = await Post<FreeIpaUser, string>(
-                stage ? FreeIpaApiMethods.StageUserMod : FreeIpaApiMethods.UserMod, options, true, true, true);
+                stage ? FreeIpaApiMethods.StageUserMod : FreeIpaApiMethods.UserMod,
+                options,
+                false,
+                true,
+                true,
+                cancellationToken: cancellationToken);
             user.Stage = stage;
             return user;
         }
 
-        public Task<bool> Passwd(FreeIpaPasswdRequestOptions options)
+        public Task<bool> Passwd(FreeIpaPasswdRequestOptions options, CancellationToken cancellationToken = default)
         {
-            return Post<bool, string>(FreeIpaApiMethods.Passwd, options);
+            return Post<bool, string>(FreeIpaApiMethods.Passwd, options, cancellationToken: cancellationToken);
         }
 
-        public async Task<FreeIpaUser[]> UserFind(FreeIpaUserFindRequestOptions options)
+        public async Task<FreeIpaUser[]> UserFind(
+            FreeIpaUserFindRequestOptions options,
+            CancellationToken cancellationToken = default)
         {
-            var users = await Post<FreeIpaUser[], string>(FreeIpaApiMethods.UserFind, options, false, true, true);
-            return users;
+            var result = await UserFindResult(options, cancellationToken);
+            return result.Result;
         }
         
-        public async Task<FreeIpaUser[]> StageUserFind(FreeIpaStageUserFindRequestOptions options)
+        public async Task<FreeIpaResult<FreeIpaUser[], string>> UserFindResult(
+            FreeIpaUserFindRequestOptions options,
+            CancellationToken cancellationToken = default)
         {
-            var users = 
-                await Post<FreeIpaUser[], string>(FreeIpaApiMethods.StageUserFind, options, false, true, true);
-            return users;
+            var result = await PostResult<FreeIpaUser[], string>(
+                FreeIpaApiMethods.UserFind,
+                options,
+                false,
+                true,
+                true,
+                cancellationToken: cancellationToken);
+            MarkStage(result.Result, false);
+            return result;
+        }
+
+        public async Task<FreeIpaUser[]> StageUserFind(
+            FreeIpaStageUserFindRequestOptions options,
+            CancellationToken cancellationToken = default)
+        {
+            var result = await StageUserFindResult(options, cancellationToken);
+            return result.Result;
+        }
+
+        public async Task<FreeIpaResult<FreeIpaUser[], string>> StageUserFindResult(
+            FreeIpaStageUserFindRequestOptions options,
+            CancellationToken cancellationToken = default)
+        {
+            var result = await PostResult<FreeIpaUser[], string>(
+                FreeIpaApiMethods.StageUserFind,
+                options,
+                false,
+                true,
+                true,
+                cancellationToken: cancellationToken);
+            MarkStage(result.Result, true);
+            return result;
         }
         
-        public async Task<FreeIpaUser[]> UserShow(FreeIpaUserShowRequestOptions options)
+        public Task<FreeIpaUser> UserShow(
+            FreeIpaUserShowRequestOptions options,
+            CancellationToken cancellationToken = default)
         {
-            var users = await Post<FreeIpaUser[], string>(FreeIpaApiMethods.UserShow, options, false, true, true);
-            return users;
+            return Post<FreeIpaUser, string>(
+                FreeIpaApiMethods.UserShow,
+                options,
+                false,
+                true,
+                true,
+                cancellationToken: cancellationToken);
         }
 
-        public Task<bool> UserDisable(FreeIpaUserDisableRequestOptions options)
+        public Task<bool> UserDisable(
+            FreeIpaUserDisableRequestOptions options,
+            CancellationToken cancellationToken = default)
         {
-            return Post<bool, string>(FreeIpaApiMethods.UserDisable, options);
+            return Post<bool, string>(FreeIpaApiMethods.UserDisable, options, cancellationToken: cancellationToken);
         }
 
-        public Task<bool> UserEnable(FreeIpaUserEnableRequestOptions options)
+        public Task<bool> UserEnable(
+            FreeIpaUserEnableRequestOptions options,
+            CancellationToken cancellationToken = default)
         {
-            return Post<bool, string>(FreeIpaApiMethods.UserEnable, options);
+            return Post<bool, string>(FreeIpaApiMethods.UserEnable, options, cancellationToken: cancellationToken);
         }
 
-        public async Task<string[]> UserDel(FreeIpaUserDelRequestOptions options, bool stage = false)
+        public async Task<string[]> UserDel(
+            FreeIpaUserDelRequestOptions options,
+            bool stage = false,
+            CancellationToken cancellationToken = default)
         {
             var result = await Post<FreeIpaUserDelResult, string[]>(
-                stage ? FreeIpaApiMethods.StageUserDel : FreeIpaApiMethods.UserDel, options);
+                stage ? FreeIpaApiMethods.StageUserDel : FreeIpaApiMethods.UserDel,
+                options,
+                cancellationToken: cancellationToken);
 
             return result?.Failed;
         }
 
-        public async Task<string[]> UserUndel(FreeIpaUserUndelRequestOptions options)
+        public async Task<string[]> UserUndel(
+            FreeIpaUserUndelRequestOptions options,
+            CancellationToken cancellationToken = default)
         {
-            var result = await Post<FreeIpaUserUndelResult, string[]>(FreeIpaApiMethods.UserUndel, options);
+            var result = await Post<FreeIpaUserUndelResult, string[]>(
+                FreeIpaApiMethods.UserUndel,
+                options,
+                cancellationToken: cancellationToken);
             return result?.Error;
         }
 
-        public async Task<FreeIpaUser> StageUserActivate(FreeIpaStageUserActivateRequestOptions options)
+        public async Task<FreeIpaUser> StageUserActivate(
+            FreeIpaStageUserActivateRequestOptions options,
+            CancellationToken cancellationToken = default)
         {
-            var user = await Post<FreeIpaUser, string>(FreeIpaApiMethods.StageUserActivate, options);
+            var user = await Post<FreeIpaUser, string>(
+                FreeIpaApiMethods.StageUserActivate,
+                options,
+                cancellationToken: cancellationToken);
             user.Stage = false;
             return user;
+        }
+
+        public async Task SessionLogout(CancellationToken cancellationToken = default)
+        {
+            await PostResponse<object, string>(
+                FreeIpaApiMethods.SessionLogout,
+                new FreeIpaRequestOptions(),
+                cancellationToken: cancellationToken);
+
+            _authenticated = false;
+        }
+
+        public async Task<FreeIpaEnvironment> Env(CancellationToken cancellationToken = default)
+        {
+            var result = await PostResultInternal<FreeIpaEnvironment, string>(
+                FreeIpaApiMethods.Env,
+                new FreeIpaEnvRequestOptions { Server = true },
+                skipApiVersion: true,
+                cancellationToken: cancellationToken);
+
+            return result.Result;
+        }
+
+        public async Task<string> GetApiVersion(CancellationToken cancellationToken = default)
+        {
+            return await ResolveApiVersion(cancellationToken);
+        }
+
+        public Task<FreeIpaCommandInfo> CommandShow(
+            string commandName,
+            CancellationToken cancellationToken = default)
+        {
+            return Post<FreeIpaCommandInfo, string>(
+                FreeIpaApiMethods.CommandShow,
+                new FreeIpaRequestOptions(),
+                all: true,
+                args: new object[] { commandName },
+                cancellationToken: cancellationToken);
+        }
+
+        public async Task<FreeIpaJsonMetadata> JsonMetadata(CancellationToken cancellationToken = default)
+        {
+            var result = await PostResultInternal<JsonElement, string>(
+                FreeIpaApiMethods.JsonMetadata,
+                new FreeIpaRequestOptions(),
+                skipApiVersion: false,
+                cancellationToken: cancellationToken);
+
+            return new FreeIpaJsonMetadata
+            {
+                Objects = GetAdditionalData(result, "objects"),
+                Methods = GetAdditionalData(result, "methods"),
+                Commands = GetAdditionalData(result, "commands")
+            };
         }
         
         public async Task<TResult> Post<TResult, TValue>(
@@ -114,49 +267,146 @@ namespace FreeIpaClient
             bool sendNulls = false, 
             bool? all = null,
             bool? raw = null,
-            IEnumerable<object> args = null)
+            IEnumerable<object> args = null,
+            CancellationToken cancellationToken = default)
+        {
+            var result = await PostResult<TResult, TValue>(
+                method,
+                options,
+                sendNulls,
+                all,
+                raw,
+                args,
+                cancellationToken);
+
+            return result == null ? default : result.Result;
+        }
+
+        public Task<FreeIpaResult<TResult, TValue>> PostResult<TResult, TValue>(
+            string method,
+            FreeIpaRequestOptions options,
+            bool sendNulls = false,
+            bool? all = null,
+            bool? raw = null,
+            IEnumerable<object> args = null,
+            CancellationToken cancellationToken = default)
+        {
+            return PostResultInternal<TResult, TValue>(
+                method,
+                options,
+                sendNulls,
+                all,
+                raw,
+                args,
+                false,
+                cancellationToken);
+        }
+
+        public Task<FreeIpaResponse<TResult, TValue>> PostResponse<TResult, TValue>(
+            string method,
+            FreeIpaRequestOptions options,
+            bool sendNulls = false,
+            bool? all = null,
+            bool? raw = null,
+            IEnumerable<object> args = null,
+            CancellationToken cancellationToken = default)
+        {
+            return PostResponseInternal<TResult, TValue>(
+                method,
+                options,
+                sendNulls,
+                all,
+                raw,
+                args,
+                false,
+                cancellationToken);
+        }
+
+        private async Task<FreeIpaResult<TResult, TValue>> PostResultInternal<TResult, TValue>(
+            string method,
+            FreeIpaRequestOptions options,
+            bool sendNulls = false,
+            bool? all = null,
+            bool? raw = null,
+            IEnumerable<object> args = null,
+            bool skipApiVersion = false,
+            CancellationToken cancellationToken = default)
+        {
+            var response = await PostResponseInternal<TResult, TValue>(
+                method,
+                options,
+                sendNulls,
+                all,
+                raw,
+                args,
+                skipApiVersion,
+                cancellationToken);
+
+            return response.Result;
+        }
+
+        private async Task<FreeIpaResponse<TResult, TValue>> PostResponseInternal<TResult, TValue>(
+            string method,
+            FreeIpaRequestOptions options,
+            bool sendNulls = false,
+            bool? all = null,
+            bool? raw = null,
+            IEnumerable<object> args = null,
+            bool skipApiVersion = false,
+            CancellationToken cancellationToken = default)
         {
             if (!_authenticated)
             {
-                await Login();
+                await Login(cancellationToken);
             }
 
-            options.Version = _config.ApiVersion;
-            options.All = all;
-            options.Raw = raw;
-
-            var request = args == null ? new FreeIpaRequest(method, options) 
-                : new FreeIpaRequest(method, options, args);
-            
-
-            var requestString = JsonConvert.SerializeObject(request, new JsonSerializerSettings
+            if (!skipApiVersion)
             {
-                ContractResolver = new DefaultContractResolver()
-                {
-                    NamingStrategy = new CamelCaseNamingStrategy(),
-                },
-                Formatting = Formatting.None,
-                NullValueHandling = sendNulls ? NullValueHandling.Include : NullValueHandling.Ignore
-            });
+                options.Version = await ResolveApiVersion(cancellationToken);
+            }
 
-            var httpContent = new StringContent(requestString, Encoding.UTF8, MediaTypeNames.Application.Json);
+            if (all.HasValue)
+            {
+                options.All = all;
+            }
 
+            if (raw.HasValue)
+            {
+                options.Raw = raw;
+            }
+
+            var requestString = SerializeRequest(method, options, args, sendNulls);
             _httpClient.DefaultRequestHeaders.Referrer = _config.Host;
-            var responseMessage = await _httpClient.PostAsync(FreeIpaConstants.Api, httpContent);
+
+            var responseMessage = await SendRequest(requestString, cancellationToken);
+
+            if (_config.RetryOnUnauthorized && ShouldRelogin(responseMessage))
+            {
+                responseMessage.Dispose();
+                _authenticated = false;
+                await Login(cancellationToken);
+                responseMessage = await SendRequest(requestString, cancellationToken);
+            }
+
             responseMessage.EnsureSuccessStatusCode();
 
-            var content = await responseMessage.Content.ReadAsStringAsync();
-            var response = JsonConvert.DeserializeObject<FreeIpaResponse<TResult, TValue>>(content);
+            var content = await responseMessage.Content.ReadAsStringAsync(cancellationToken);
+            var response = JsonSerializer.Deserialize<FreeIpaResponse<TResult, TValue>>(content, DeserializeOptions);
+
+            if (response == null)
+            {
+                throw new FreeIpaException("FreeIPA returned an empty response.", responseMessage.StatusCode);
+            }
 
             if (response.Error != null)
             {
                 throw new FreeIpaException(response.Error.Message, responseMessage.StatusCode, response.Error);
             }
             
-            return response.Result.Result;
+            return response;
         }
         
-        private async Task Login()
+        private async Task Login(CancellationToken cancellationToken)
         {
             var httpContent = new FormUrlEncodedContent(new[]
             {
@@ -165,7 +415,7 @@ namespace FreeIpaClient
             });
 
             _httpClient.DefaultRequestHeaders.Referrer = _config.Host;
-            var response = await _httpClient.PostAsync(FreeIpaConstants.Login, httpContent);
+            var response = await _httpClient.PostAsync(FreeIpaConstants.Login, httpContent, cancellationToken);
 
             if (!response.IsSuccessStatusCode && response.Headers.TryGetValues("X-IPA-Rejection-Reason", out var rejectionReasons))
             {
@@ -182,6 +432,82 @@ namespace FreeIpaClient
             _authenticated = true;
 
             await Task.CompletedTask;
+        }
+
+        private async Task<string> ResolveApiVersion(CancellationToken cancellationToken)
+        {
+            if (!string.IsNullOrWhiteSpace(_config.ApiVersion))
+            {
+                return _config.ApiVersion;
+            }
+
+            if (!_config.AutoDetectApiVersion)
+            {
+                return null;
+            }
+
+            if (!string.IsNullOrWhiteSpace(_apiVersion))
+            {
+                return _apiVersion;
+            }
+
+            var env = await Env(cancellationToken);
+            _apiVersion = env?.ApiVersion;
+            return _apiVersion;
+        }
+
+        private static string SerializeRequest(
+            string method,
+            FreeIpaRequestOptions options,
+            IEnumerable<object> args,
+            bool sendNulls)
+        {
+            var request = args == null ? new FreeIpaRequest(method, options)
+                : new FreeIpaRequest(method, options, args);
+
+            return JsonSerializer.Serialize(request, sendNulls ? SerializeOptionsWithNulls : SerializeOptions);
+        }
+
+        private Task<HttpResponseMessage> SendRequest(
+            string requestString,
+            CancellationToken cancellationToken)
+        {
+            var httpContent = new StringContent(requestString, Encoding.UTF8, MediaTypeNames.Application.Json);
+            return _httpClient.PostAsync(FreeIpaConstants.Api, httpContent, cancellationToken);
+        }
+
+        private static bool ShouldRelogin(HttpResponseMessage responseMessage)
+        {
+            if (responseMessage.StatusCode == HttpStatusCode.Unauthorized ||
+                responseMessage.StatusCode == HttpStatusCode.Forbidden)
+            {
+                return true;
+            }
+
+            return responseMessage.Headers.TryGetValues("X-IPA-Rejection-Reason", out var reasons) &&
+                reasons.Any(reason => reason.Contains("session", System.StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static void MarkStage(IEnumerable<FreeIpaUser> users, bool stage)
+        {
+            if (users == null)
+            {
+                return;
+            }
+
+            foreach (var user in users)
+            {
+                user.Stage = stage;
+            }
+        }
+
+        private static JsonElement GetAdditionalData<TResult, TValue>(
+            FreeIpaResult<TResult, TValue> result,
+            string name)
+        {
+            return result.AdditionalData != null && result.AdditionalData.TryGetValue(name, out var value)
+                ? value
+                : default;
         }
     }
 }

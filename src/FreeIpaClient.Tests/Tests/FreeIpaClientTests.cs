@@ -2,17 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using FluentAssertions;
-using FluentAssertions.Execution;
+using System.Threading.Tasks;
 using FreeIpaClient.Interfaces;
 using FreeIpaClient.Models;
 using FreeIpaClient.RequestOptions;
 using Microsoft.Extensions.Configuration;
+using Xunit;
 
 namespace FreeIpaClient.Tests.Tests
 {
+    [Trait("Category", "Integration")]
     public partial class FreeIpaClientTests : IDisposable
     {
+        private const string TestUserPrefix = "fitest";
+
         private readonly FreeIpaConfig _config;
         private readonly IFreeIpaApiClient _client;
         private readonly HttpClientHandler _httpClientHandler;
@@ -39,33 +42,7 @@ namespace FreeIpaClient.Tests.Tests
 
         public void Dispose()
         {
-            //cleanup active users
-            try
-            {
-                _client.UserDel(new FreeIpaUserDelRequestOptions
-                {
-                    Uid = _usersToCleanup.ToArray(),
-                    Continue = true
-                }).Wait();
-            }
-            catch
-            {
-                //skip cleanup errors
-            }
-
-            //cleanup staged users
-            try
-            {
-                _client.UserDel(new FreeIpaUserDelRequestOptions
-                {
-                    Uid = _usersToCleanup.ToArray(),
-                    Continue = true
-                }, true).Wait();
-            }
-            catch
-            {
-                //skip cleanup errors
-            }
+            CleanupUsers();
             
             _httpClient.Dispose();
             _httpClientHandler.Dispose();
@@ -73,7 +50,7 @@ namespace FreeIpaClient.Tests.Tests
         
         private static FreeIpaUserRequestOptions NewUserRequestOptionsFixture()
         {
-            var uid = Guid.NewGuid().ToString("N");
+            var uid = $"{TestUserPrefix}{Guid.NewGuid():N}"[..24];
             var id8 = uid[..8];
 
             return new FreeIpaUserRequestOptions
@@ -92,17 +69,22 @@ namespace FreeIpaClient.Tests.Tests
         
         private static void AssertUser(FreeIpaUserRequestOptions options, FreeIpaUser user)
         {
-            using (new AssertionScope())
-            {
-                options.Uid.Should().BeEquivalentTo(user.Uid.Single());
-                options.Givenname.Should().BeEquivalentTo(user.Givenname.Single());
-                options.Sn.Should().BeEquivalentTo(user.Sn.Single());
-                options.Cn.Should().BeEquivalentTo(user.Cn.Single());
-                options.Mail.Should().BeEquivalentTo(user.Mail.Single());
-                options.Mobile.Should().BeEquivalentTo(user.Mobile.Single());
-                options.Ou.Should().BeEquivalentTo(user.Ou.Single());
-                options.Title.Should().BeEquivalentTo(user.Title.Single());
-            }
+            Assert.Equal(options.Uid, user.Uid.Single());
+            Assert.Equal(options.Givenname, user.Givenname.Single());
+            Assert.Equal(options.Sn, user.Sn.Single());
+            Assert.Equal(options.Cn, user.Cn.Single());
+            Assert.Equal(options.Mail, user.Mail.Single());
+            Assert.Equal(options.Mobile, user.Mobile.Single());
+            Assert.Equal(options.Ou, user.Ou.Single());
+            Assert.Equal(options.Title, user.Title.Single());
+        }
+
+        private Task<FreeIpaUser> UserAddForTest(
+            FreeIpaUserRequestOptions options,
+            bool stage = false)
+        {
+            MarkForCleanup(options.Uid);
+            return _client.UserAdd(options, stage);
         }
         
         private void MarkForCleanup(FreeIpaUser user)
@@ -118,6 +100,34 @@ namespace FreeIpaClient.Tests.Tests
             if (userId != null)
             {
                 _usersToCleanup.Add(userId);
+            }
+        }
+
+        private void CleanupUsers()
+        {
+            if (_usersToCleanup.Count == 0)
+            {
+                return;
+            }
+
+            var userIds = _usersToCleanup.ToArray();
+            CleanupUsers(userIds, stage: false);
+            CleanupUsers(userIds, stage: true);
+        }
+
+        private void CleanupUsers(string[] userIds, bool stage)
+        {
+            try
+            {
+                _client.UserDel(new FreeIpaUserDelRequestOptions
+                {
+                    Uid = userIds,
+                    Continue = true
+                }, stage).GetAwaiter().GetResult();
+            }
+            catch
+            {
+                // Skip cleanup errors to keep the original test failure visible.
             }
         }
     }
