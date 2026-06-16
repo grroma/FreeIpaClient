@@ -14,6 +14,7 @@ jobs:
     name: build, test, pack and publish
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment: release
 
     steps:
       - uses: actions/checkout@v6
@@ -61,7 +62,7 @@ jobs:
         uses: NuGet/login@v1
         id: login
         with:
-          user: grroma
+          user: grroma01
 
       - name: publish
         run: >
